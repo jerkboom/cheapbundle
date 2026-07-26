@@ -9,6 +9,7 @@ export interface BundleType {
   size: string;
   price: number;
   category?: string;
+  validity?: string;
 }
 
 interface CheckoutModalProps {
@@ -136,7 +137,9 @@ const CheckoutModal: React.FC<CheckoutModalProps> = ({ isOpen, onClose, bundle }
                   </div>
                   <div className="flex justify-between pb-3 border-b border-border">
                     <span className="text-textSecondary font-medium">Bundle</span>
-                    <span className="font-bold text-textPrimary">{bundle.size}</span>
+                    <span className="font-bold text-textPrimary">
+                      {bundle.size} {bundle.validity && <span className="text-textSecondary text-sm ml-1 font-medium">({bundle.validity})</span>}
+                    </span>
                   </div>
                   <div className="flex justify-between items-center">
                     <span className="text-lg font-bold text-textPrimary">Total</span>

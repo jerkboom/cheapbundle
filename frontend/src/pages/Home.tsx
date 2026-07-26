@@ -71,9 +71,9 @@ const Home: React.FC = () => {
         </div>
         
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 md:gap-8 auto-rows-fr">
-          <div className="h-full"><BundleCard network="MTN" size="10GB" price={23.55} category="DATA" onClick={() => setSelectedBundle({ network: 'MTN', size: '10GB', price: 23.55, category: 'DATA' })} /></div>
-          <div className="h-full"><BundleCard network="Telecel" size="11GB" price={21.79} category="DATA" onClick={() => setSelectedBundle({ network: 'Telecel', size: '11GB', price: 21.79, category: 'DATA' })} /></div>
-          <div className="h-full sm:col-span-2 lg:col-span-1"><BundleCard network="AirtelTigo" size="10GB" price={34.99} category="DATA" onClick={() => setSelectedBundle({ network: 'AirtelTigo', size: '10GB', price: 34.99, category: 'DATA' })} /></div>
+          <div className="h-full"><BundleCard network="MTN" size="10GB" price={23.55} category="DATA" validity="Non-Expiry" onClick={() => setSelectedBundle({ network: 'MTN', size: '10GB', price: 23.55, category: 'DATA', validity: 'Non-Expiry' })} /></div>
+          <div className="h-full"><BundleCard network="Telecel" size="11GB" price={21.79} category="DATA" validity="Non-Expiry" onClick={() => setSelectedBundle({ network: 'Telecel', size: '11GB', price: 21.79, category: 'DATA', validity: 'Non-Expiry' })} /></div>
+          <div className="h-full sm:col-span-2 lg:col-span-1"><BundleCard network="AirtelTigo" size="10GB" price={34.99} category="DATA" validity="Non-Expiry" onClick={() => setSelectedBundle({ network: 'AirtelTigo', size: '10GB', price: 34.99, category: 'DATA', validity: 'Non-Expiry' })} /></div>
         </div>
         
         <Link to="/bundles" className="sm:hidden mt-8 text-textSecondary hover:text-primary font-medium flex items-center justify-center gap-2 group transition-colors duration-200 w-full p-4 border border-border rounded-[14px]">
