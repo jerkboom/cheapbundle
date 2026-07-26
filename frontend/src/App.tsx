@@ -5,7 +5,6 @@ import Home from './pages/Home';
 import Bundles from './pages/Bundles';
 import Login from './pages/Login';
 import Register from './pages/Register';
-import Checkout from './pages/Checkout';
 import OrderTracking from './pages/OrderTracking';
 import Dashboard from './pages/Dashboard';
 import BecomeSeller from './pages/BecomeSeller';
@@ -25,7 +24,6 @@ function App() {
             <Route path="/bundles" element={<Bundles />} />
             <Route path="/login" element={<Login />} />
             <Route path="/register" element={<Register />} />
-            <Route path="/checkout" element={<Checkout />} />
             <Route path="/track-order" element={<OrderTracking />} />
             <Route path="/become-a-seller" element={<BecomeSeller />} />
             <Route path="/payment/callback" element={<PaymentCallback />} />

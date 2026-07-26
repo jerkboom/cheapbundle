@@ -1,8 +1,9 @@
 import React, { useState } from 'react';
 import { motion } from 'framer-motion';
-import { useNavigate } from 'react-router-dom';
 import BundleCard from '../components/BundleCard';
 import PageHeader from '../components/PageHeader';
+import CheckoutModal from '../components/CheckoutModal';
+import type { BundleType } from '../components/CheckoutModal';
 
 const mtnBundles = [
   { size: '4GB', price: 20.00, category: 'STARTER' },
@@ -46,7 +47,7 @@ const airteltigoBundles = [
 
 const Bundles: React.FC = () => {
   const [filter, setFilter] = useState<'All' | 'MTN' | 'Telecel' | 'AirtelTigo'>('All');
-  const navigate = useNavigate();
+  const [selectedBundle, setSelectedBundle] = useState<BundleType | null>(null);
 
   const allBundles = [
     ...mtnBundles.map(b => ({ ...b, network: 'MTN' as const })),
@@ -98,12 +99,18 @@ const Bundles: React.FC = () => {
                 size={bundle.size} 
                 price={bundle.price} 
                 category={bundle.category}
-                onClick={() => navigate('/checkout', { state: { network: bundle.network, size: bundle.size, price: bundle.price } })}
+                onClick={() => setSelectedBundle({ network: bundle.network, size: bundle.size, price: bundle.price, category: bundle.category })}
               />
             </motion.div>
           ))}
         </motion.div>
       </div>
+      
+      <CheckoutModal 
+        isOpen={selectedBundle !== null} 
+        onClose={() => setSelectedBundle(null)} 
+        bundle={selectedBundle} 
+      />
     </div>
   );
 };
