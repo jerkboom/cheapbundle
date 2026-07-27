@@ -35,13 +35,22 @@ const Navbar: React.FC = () => {
       className="fixed top-0 left-0 right-0 z-50 h-[80px] w-full bg-surface/90 backdrop-blur-lg border-b border-border shadow-sm flex items-center justify-center"
     >
       <div className="w-full max-w-[1280px] px-6 md:px-12 flex justify-between items-center">
-        <Link to="/" className="flex flex-col">
-          <span className="text-2xl font-black text-textPrimary tracking-tight leading-none">
-            BundleHub.
-          </span>
-          <span className="text-[10px] text-primary font-bold tracking-widest mt-1 uppercase">
-            Hub • Ghana
-          </span>
+        <Link to="/" className="flex items-center gap-3">
+          <div className="relative flex items-center justify-center w-10 h-10 bg-primary/10 rounded-xl shadow-inner border border-primary/20">
+            <svg className="w-6 h-6 text-primary drop-shadow-sm" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+              <path d="M12 2L2 7l10 5 10-5-10-5Z" />
+              <path d="M2 17l10 5 10-5" />
+              <path d="M2 12l10 5 10-5" />
+            </svg>
+          </div>
+          <div className="flex flex-col">
+            <span className="text-2xl font-black text-textPrimary tracking-tight leading-none">
+              BundleHub<span className="text-primary">.</span>
+            </span>
+            <span className="text-[10px] text-primary font-bold tracking-widest mt-1 uppercase">
+              Hub • Ghana
+            </span>
+          </div>
         </Link>
         <div className="hidden md:flex gap-8 items-center absolute left-1/2 -translate-x-1/2">
           <Link to="/bundles" className="text-textSecondary hover:text-primary transition-colors duration-300 font-medium">Bundles</Link>
