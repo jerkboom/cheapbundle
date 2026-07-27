@@ -111,7 +111,7 @@ const PaymentSuccess: React.FC = () => {
             >
               <CheckCircle size={48} />
             </motion.div>
-            <h1 className="text-4xl font-black text-red-600 mb-2">Payment Successful v2</h1>
+            <h1 className="text-4xl font-black text-green-600 mb-2">Payment Successful</h1>
             <p className="text-textMuted text-lg">Your payment has been verified.</p>
           </div>
 
