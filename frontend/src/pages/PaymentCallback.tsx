@@ -18,8 +18,11 @@ const PaymentCallback: React.FC = () => {
 
       try {
         const response = await api.get(`/payments/verify/${reference}`);
+        console.log("Verification Response:", response.data);
+        console.log("Verification Order:", response.data.order);
         if (response.data.success) {
-          navigate(`/order-success?reference=${reference}`);
+          console.log("Passing order", response.data.order);
+          navigate(`/order-success?reference=${reference}`, { state: { order: response.data.order } });
         } else {
           navigate('/payment-failed');
         }
