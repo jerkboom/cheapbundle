@@ -3,6 +3,7 @@ import { Link } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import { ArrowRight, ChevronDown } from 'lucide-react';
 import BundleCard from '../components/BundleCard';
+import { NetworkLogo } from '../components/NetworkLogo';
 import CheckoutModal from '../components/CheckoutModal';
 import type { BundleType } from '../components/CheckoutModal';
 
@@ -45,7 +46,9 @@ const Home: React.FC = () => {
                 className="bg-surface border border-border rounded-[18px] p-8 group cursor-pointer transition-all duration-200 shadow-sm"
               >
                 <div className="flex justify-between items-center mb-6">
-                  <h3 className="text-2xl font-bold text-textPrimary">{network}</h3>
+                  <div className="h-10 flex items-center">
+                    <NetworkLogo network={network} className="h-full w-auto object-contain" />
+                  </div>
                   <ArrowRight className="text-textSecondary group-hover:text-primary transition-colors duration-200" />
                 </div>
                 <p className="text-textSecondary font-medium">From GHS 2.20</p>

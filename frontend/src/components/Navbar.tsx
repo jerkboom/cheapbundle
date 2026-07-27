@@ -32,7 +32,7 @@ const Navbar: React.FC = () => {
       initial={{ y: -100 }}
       animate={{ y: 0 }}
       transition={{ duration: 0.5 }}
-      className="sticky top-0 z-50 h-[80px] bg-surface/90 backdrop-blur-lg border-b border-border shadow-sm flex items-center justify-center"
+      className="fixed top-0 left-0 right-0 z-50 h-[80px] w-full bg-surface/90 backdrop-blur-lg border-b border-border shadow-sm flex items-center justify-center"
     >
       <div className="w-full max-w-[1280px] px-6 md:px-12 flex justify-between items-center">
         <Link to="/" className="flex flex-col">

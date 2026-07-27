@@ -9,7 +9,7 @@ const PublicLayout: React.FC = () => {
   const location = useLocation();
 
   return (
-    <div className="min-h-screen flex flex-col bg-background text-textMain font-sans overflow-x-hidden relative">
+    <div className="min-h-screen flex flex-col bg-background text-textMain font-sans overflow-x-hidden relative pt-[80px]">
       <Navbar />
       {location.pathname === '/' && <HeroBanner />}
       <main className="flex-grow w-full">

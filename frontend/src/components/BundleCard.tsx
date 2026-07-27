@@ -1,5 +1,6 @@
 import React from 'react';
 import { motion } from 'framer-motion';
+import { NetworkLogo } from './NetworkLogo';
 
 
 interface BundleCardProps {
@@ -11,12 +12,6 @@ interface BundleCardProps {
   onClick?: () => void;
 }
 
-const networkColors = {
-  MTN: 'bg-yellow-500 text-black',
-  Telecel: 'bg-red-600 text-white',
-  AirtelTigo: 'bg-blue-600 text-white',
-};
-
 const BundleCard: React.FC<BundleCardProps> = ({ network, size, price, category = 'DATA', validity, onClick }) => {
   return (
     <motion.div
@@ -24,8 +19,8 @@ const BundleCard: React.FC<BundleCardProps> = ({ network, size, price, category 
       className="bg-surface border border-border rounded-[18px] p-6 relative overflow-hidden group transition-all duration-200 shadow-sm flex flex-col h-full"
     >
       <div className="flex justify-between items-start mb-8 gap-2 flex-wrap">
-        <div className={`px-3 py-1 rounded-full text-xs font-bold ${networkColors[network]}`}>
-          {network}
+        <div className="h-8 flex items-center">
+          <NetworkLogo network={network} className="h-full w-auto object-contain" />
         </div>
         <div className="flex gap-2 flex-wrap justify-end">
           {validity && (
