@@ -1,23 +1,6 @@
 const Order = require('../models/Order');
 
-exports.addOrderItems = async (req, res) => {
-    const { customerName, phoneNumber, bundle, amount, paymentReference } = req.body;
 
-    if (!bundle) {
-        return res.status(400).json({ message: 'No bundle items' });
-    }
-
-    const order = new Order({
-        customerName,
-        phoneNumber,
-        bundle,
-        amount,
-        paymentReference,
-    });
-
-    const createdOrder = await order.save();
-    res.status(201).json(createdOrder);
-};
 
 exports.getOrderById = async (req, res) => {
     const order = await Order.findById(req.params.id);

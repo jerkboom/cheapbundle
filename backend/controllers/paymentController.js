@@ -5,7 +5,7 @@ const crypto = require('crypto');
 const mongoose = require('mongoose');
 
 exports.initializePayment = async (req, res) => {
-    const { network, bundleName, price, category, phone, email } = req.body;
+    const { network, bundleName, price, category, validity, phone, email } = req.body;
     try {
         if (!process.env.PAYSTACK_SECRET_KEY) {
             throw new Error("PAYSTACK_SECRET_KEY is not defined in environment variables");
@@ -21,6 +21,8 @@ exports.initializePayment = async (req, res) => {
         const amount = Number(price);
         const reference = `CBHG-${Date.now()}-${Math.floor(Math.random() * 1000000)}`;
 
+        console.log("Creating Order", req.body);
+
         const response = await paystack.post('/transaction/initialize', {
             email: email || 'no-reply@cheapbundlehub.com',
             amount: Math.round(amount * 100),
@@ -30,7 +32,8 @@ exports.initializePayment = async (req, res) => {
                 phone,
                 network,
                 bundleName,
-                category
+                category,
+                validity
             }
         });
 
@@ -40,11 +43,14 @@ exports.initializePayment = async (req, res) => {
             network,
             bundleName,
             category,
+            validity,
             amount,
             paystackReference: reference,
             paymentStatus: 'pending',
             status: 'pending'
         });
+
+        console.log("Saved Order", order);
 
         res.json({ 
             authorization_url: response.data.data.authorization_url, 
@@ -73,6 +79,7 @@ exports.verifyPayment = async (req, res) => {
                 order.paidAt = new Date();
                 await order.save();
             }
+            console.log("Verified Order", order);
             res.json({ success: true, order });
         } else {
             const order = await Order.findOne({ paystackReference: reference });
