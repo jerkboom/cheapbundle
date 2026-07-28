@@ -5,7 +5,7 @@ const crypto = require('crypto');
 const mongoose = require('mongoose');
 
 exports.initializePayment = async (req, res) => {
-    const { network, bundleName, price, category, validity, phone, email } = req.body;
+    const { network, bundleName, price, deliveryType, category, validity, phone, email } = req.body;
     try {
         if (!process.env.PAYSTACK_SECRET_KEY) {
             throw new Error("PAYSTACK_SECRET_KEY is not defined in environment variables");
@@ -33,9 +33,12 @@ exports.initializePayment = async (req, res) => {
                 network,
                 bundleName,
                 category,
-                validity
+                validity,
+                deliveryType
             }
         });
+
+        const deliveryEstimatedTime = deliveryType === 'standard' ? 'Few minutes' : '10-60 sec';
 
         const order = await Order.create({
             phone,
@@ -45,6 +48,9 @@ exports.initializePayment = async (req, res) => {
             category,
             validity,
             amount,
+            deliveryType,
+            deliveryPrice: amount,
+            deliveryEstimatedTime,
             paystackReference: reference,
             paymentStatus: 'pending',
             status: 'pending'

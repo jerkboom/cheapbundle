@@ -28,6 +28,17 @@ const orderSchema = new mongoose.Schema({
         type: Number,
         required: true
     },
+    deliveryType: {
+        type: String,
+        enum: ['standard', 'instant'],
+        default: 'instant'
+    },
+    deliveryPrice: {
+        type: Number
+    },
+    deliveryEstimatedTime: {
+        type: String
+    },
     paystackReference: {
         type: String,
         required: true,
