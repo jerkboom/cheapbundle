@@ -1,5 +1,7 @@
-import React, { useState } from 'react';
-import { motion } from 'framer-motion';
+import React, { useState, useEffect, useRef, useMemo } from 'react';
+import { motion, AnimatePresence } from 'framer-motion';
+import { Search, X, History } from 'lucide-react';
+import Fuse from 'fuse.js';
 import BundleCard from '../components/BundleCard';
 import PageHeader from '../components/PageHeader';
 import CheckoutModal from '../components/CheckoutModal';
@@ -96,30 +98,250 @@ const airteltigoBundles = [
   { size: '1TB', standardPrice: 385, instantPrice: 390, category: 'MEGA', validity: 'Non-Expiry' }
 ];
 
+const baseBundles = [
+  ...mtnBundles.map(b => ({ ...b, network: 'MTN' as const })),
+  ...telecelBundles.map(b => ({ ...b, network: 'Telecel' as const })),
+  ...airteltigoBundles.map(b => ({ ...b, network: 'AirtelTigo' as const }))
+];
+
+// Enrich bundles with searchable strings for Fuse
+const searchableBundles = baseBundles.map(b => {
+  let networkAlias = b.network;
+  if (b.network === 'Telecel') networkAlias += ' Vodafone Telecell';
+  if (b.network === 'AirtelTigo') networkAlias += ' Airtel Tigo AT airteltigo';
+  if (b.network === 'MTN') networkAlias += ' mtnn ghana';
+  
+  let sizeAlias = b.size.replace('GB', ' GB').replace('TB', ' TB');
+  
+  let validityAlias = b.validity;
+  if (b.validity === 'Non-Expiry') validityAlias += ' non expiry noexpiry no expiry nonexp';
+  if (b.validity === 'Monthly') validityAlias += ' 30 days month';
+  
+  const priceStr = `${b.standardPrice} ${b.standardPrice.toFixed(2)} ${b.instantPrice} ${b.instantPrice.toFixed(2)}`;
+  const deliveryAlias = 'instant fast quick immediate standard normal regular';
+  
+  const searchString = `${networkAlias} ${sizeAlias} ${b.category} ${validityAlias} ${priceStr} ${deliveryAlias}`.toLowerCase();
+  
+  return { ...b, searchString };
+});
+
 const Bundles: React.FC = () => {
   const [networkFilter, setNetworkFilter] = useState<'All' | 'MTN' | 'Telecel' | 'AirtelTigo'>('All');
   const [validityFilter, setValidityFilter] = useState<'All' | 'Non-Expiry' | '30 Days' | '14 Days' | '7 Days' | 'Monthly'>('All');
   const [selectedBundle, setSelectedBundle] = useState<BundleType | null>(null);
+  
+  const [searchQuery, setSearchQuery] = useState('');
+  const [debouncedSearch, setDebouncedSearch] = useState('');
+  const [isFocused, setIsFocused] = useState(false);
+  const [recentSearches, setRecentSearches] = useState<string[]>([]);
+  const searchContainerRef = useRef<HTMLDivElement>(null);
 
-  const allBundles = [
-    ...mtnBundles.map(b => ({ ...b, network: 'MTN' as const })),
-    ...telecelBundles.map(b => ({ ...b, network: 'Telecel' as const })),
-    ...airteltigoBundles.map(b => ({ ...b, network: 'AirtelTigo' as const }))
-  ];
+  // Load recent searches on mount
+  useEffect(() => {
+    const saved = localStorage.getItem('bundlehub_recent_searches');
+    if (saved) {
+      try {
+        setRecentSearches(JSON.parse(saved));
+      } catch (e) {}
+    }
+  }, []);
 
-  let filteredBundles = networkFilter === 'All' 
-    ? allBundles 
-    : allBundles.filter(b => b.network === networkFilter);
+  // Save recent searches
+  const saveRecentSearch = (query: string) => {
+    if (!query.trim()) return;
+    const q = query.trim().toLowerCase();
+    const newRecent = [q, ...recentSearches.filter(s => s !== q)].slice(0, 5);
+    setRecentSearches(newRecent);
+    localStorage.setItem('bundlehub_recent_searches', JSON.stringify(newRecent));
+  };
 
-  if (validityFilter !== 'All') {
-    filteredBundles = filteredBundles.filter(b => b.validity === validityFilter);
-  }
+  const removeRecentSearch = (e: React.MouseEvent, query: string) => {
+    e.stopPropagation();
+    const newRecent = recentSearches.filter(s => s !== query);
+    setRecentSearches(newRecent);
+    localStorage.setItem('bundlehub_recent_searches', JSON.stringify(newRecent));
+  };
+
+  const clearHistory = (e: React.MouseEvent) => {
+    e.stopPropagation();
+    setRecentSearches([]);
+    localStorage.removeItem('bundlehub_recent_searches');
+  };
+
+  // Debounce search
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      setDebouncedSearch(searchQuery.trim().toLowerCase());
+    }, 250);
+    return () => clearTimeout(timer);
+  }, [searchQuery]);
+
+  // Handle outside click for suggestions
+  useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      if (searchContainerRef.current && !searchContainerRef.current.contains(event.target as Node)) {
+        setIsFocused(false);
+      }
+    };
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => document.removeEventListener("mousedown", handleClickOutside);
+  }, []);
+
+  // Memoize Fuse instances and perform AND-logic fuzzy search
+  const filteredBundles = useMemo(() => {
+    // 1. First apply strict categorical filters
+    let results = searchableBundles;
+    if (networkFilter !== 'All') {
+      results = results.filter(b => b.network === networkFilter);
+    }
+    if (validityFilter !== 'All') {
+      results = results.filter(b => b.validity === validityFilter);
+    }
+
+    // 2. If no search, return filtered
+    if (!debouncedSearch) return results;
+
+    // 3. AND-logic Fuzzy Search: Tokenize search into words
+    const tokens = debouncedSearch.split(/\s+/).filter(Boolean);
+    
+    // For each token, run a fuzzy search on the remaining results
+    let currentResults = [...results];
+    
+    for (const token of tokens) {
+      if (currentResults.length === 0) break;
+      const fuse = new Fuse(currentResults, {
+        keys: ['searchString'],
+        threshold: 0.35, // forgiving for typos like mtnn, instat
+        ignoreLocation: true,
+        includeScore: true
+      });
+      
+      const searchRes = fuse.search(token);
+      currentResults = searchRes.map(res => res.item);
+    }
+    
+    return currentResults;
+  }, [debouncedSearch, networkFilter, validityFilter]);
+
+  // Handle enter key to save search
+  const handleKeyDown = (e: React.KeyboardEvent) => {
+    if (e.key === 'Enter') {
+      saveRecentSearch(searchQuery);
+      setIsFocused(false);
+      (document.activeElement as HTMLElement)?.blur();
+    }
+  };
+
+  const executeSearch = (query: string) => {
+    setSearchQuery(query);
+    setDebouncedSearch(query.toLowerCase());
+    saveRecentSearch(query);
+    setIsFocused(false);
+  };
 
   return (
     <div className="pt-8 md:pt-12 pb-16 md:pb-24">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         
         <PageHeader title="Data Bundles" description="Pick a network to see bundles." />
+
+        {/* Smart Search Bar */}
+        <div ref={searchContainerRef} className="w-full max-w-[600px] mx-auto mb-10 relative z-30">
+          <div className={`relative flex items-center w-full h-[52px] rounded-xl border bg-white transition-all overflow-hidden ${
+            isFocused 
+              ? 'border-primary ring-4 ring-primary/10 shadow-md' 
+              : 'border-slate-200 shadow-sm hover:border-slate-300'
+          }`}>
+            <div className={`pl-4 ${isFocused ? 'text-primary' : 'text-slate-400'}`}>
+              <Search size={20} />
+            </div>
+            <input
+              type="text"
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+              onFocus={() => setIsFocused(true)}
+              onKeyDown={handleKeyDown}
+              placeholder="Search bundles (e.g. 10GB, MTN, Non-Expiry)"
+              className="w-full h-full pl-3 pr-10 outline-none text-slate-900 placeholder-slate-400 bg-transparent text-sm sm:text-base font-medium"
+            />
+            {searchQuery && (
+              <button 
+                onClick={() => {
+                  setSearchQuery('');
+                  searchContainerRef.current?.querySelector('input')?.focus();
+                }}
+                className="absolute right-3 p-1 rounded-full hover:bg-slate-100 text-slate-400 hover:text-slate-600 transition-colors"
+              >
+                <X size={18} />
+              </button>
+            )}
+          </div>
+
+          {/* Search Suggestions & History Dropdown */}
+          <AnimatePresence>
+            {isFocused && (searchQuery.length > 0 || recentSearches.length > 0) && (
+              <motion.div
+                initial={{ opacity: 0, y: 5 }}
+                animate={{ opacity: 1, y: 0 }}
+                exit={{ opacity: 0, y: 5 }}
+                transition={{ duration: 0.15 }}
+                className="absolute top-[60px] left-0 w-full bg-white border border-slate-200 shadow-xl rounded-xl overflow-hidden py-2 z-40"
+              >
+                {searchQuery.length === 0 && recentSearches.length > 0 ? (
+                  <div>
+                    <div className="flex justify-between items-center px-4 py-2">
+                      <span className="text-xs font-bold text-slate-400 uppercase tracking-wider">Recent Searches</span>
+                      <button onClick={clearHistory} className="text-xs text-primary hover:underline font-medium">Clear all</button>
+                    </div>
+                    {recentSearches.map((s, i) => (
+                      <button
+                        key={i}
+                        onClick={() => executeSearch(s)}
+                        className="w-full px-4 py-2.5 flex justify-between items-center hover:bg-slate-50 transition-colors text-left group"
+                      >
+                        <div className="flex items-center gap-3">
+                          <History size={16} className="text-slate-400" />
+                          <span className="text-slate-700 font-medium text-sm">{s}</span>
+                        </div>
+                        <div 
+                          role="button"
+                          onClick={(e) => removeRecentSearch(e, s)}
+                          className="p-1 text-slate-300 hover:text-danger hover:bg-red-50 rounded-md transition-colors opacity-0 group-hover:opacity-100"
+                        >
+                          <X size={14} />
+                        </div>
+                      </button>
+                    ))}
+                  </div>
+                ) : (
+                  <div>
+                    {/* Auto-suggestions based on current typing */}
+                    {filteredBundles.slice(0, 5).map((b, i) => (
+                      <button
+                        key={i}
+                        onClick={() => {
+                          const suggestion = `${b.network} ${b.size} ${b.validity === 'Non-Expiry' ? 'Non-Expiry' : ''}`.trim();
+                          executeSearch(suggestion);
+                        }}
+                        className="w-full px-4 py-2.5 flex items-center gap-3 hover:bg-slate-50 transition-colors text-left"
+                      >
+                        <Search size={16} className="text-slate-400" />
+                        <span className="text-slate-700 font-medium text-sm">
+                          {b.network} <span className="font-bold text-slate-900">{b.size}</span> {b.validity === 'Non-Expiry' && '- Non-Expiry'}
+                        </span>
+                      </button>
+                    ))}
+                    {filteredBundles.length === 0 && (
+                      <div className="px-4 py-6 text-center text-slate-500 text-sm">
+                        No suggestions found
+                      </div>
+                    )}
+                  </div>
+                )}
+              </motion.div>
+            )}
+          </AnimatePresence>
+        </div>
 
         <div className="flex flex-wrap gap-3 mb-6 justify-center md:justify-start">
           {['All', 'MTN', 'Telecel', 'AirtelTigo'].map((net) => (
@@ -153,30 +375,57 @@ const Bundles: React.FC = () => {
           ))}
         </div>
 
-        <motion.div 
-          layout
-          className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6"
-        >
-          {filteredBundles.map((bundle, i) => (
-            <motion.div
-              layout
-              initial={{ opacity: 0, scale: 0.9 }}
-              animate={{ opacity: 1, scale: 1 }}
-              exit={{ opacity: 0, scale: 0.9 }}
-              transition={{ duration: 0.3 }}
-              key={`${bundle.network}-${bundle.size}-${i}`}
+        {filteredBundles.length > 0 ? (
+          <motion.div 
+            layout
+            className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6"
+          >
+            {filteredBundles.map((bundle, i) => (
+              <motion.div
+                layout
+                initial={{ opacity: 0, scale: 0.9 }}
+                animate={{ opacity: 1, scale: 1 }}
+                exit={{ opacity: 0, scale: 0.9 }}
+                transition={{ duration: 0.3 }}
+                key={`${bundle.network}-${bundle.size}-${i}`}
+              >
+                <BundleCard 
+                  network={bundle.network} 
+                  size={bundle.size} 
+                  price={bundle.standardPrice} 
+                  category={bundle.category}
+                  validity={bundle.validity}
+                  searchQuery={debouncedSearch}
+                  onClick={(deliveryType, finalPrice) => setSelectedBundle({ network: bundle.network, size: bundle.size, finalPrice, deliveryType, category: bundle.category, validity: bundle.validity })}
+                />
+              </motion.div>
+            ))}
+          </motion.div>
+        ) : (
+          <motion.div 
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            className="w-full flex flex-col items-center justify-center py-20 px-4 text-center"
+          >
+            <div className="w-16 h-16 bg-slate-50 border border-slate-100 rounded-full flex items-center justify-center mb-5 shadow-sm">
+              <Search size={28} className="text-slate-300" />
+            </div>
+            <h3 className="text-xl font-bold text-slate-900 mb-2">No bundles found</h3>
+            <p className="text-slate-500 mb-6 max-w-sm">
+              We couldn't find anything matching "<span className="font-semibold text-slate-700">{searchQuery}</span>". Try searching for <span className="font-semibold text-slate-700">MTN</span>, <span className="font-semibold text-slate-700">10GB</span>, <span className="font-semibold text-slate-700">Non-Expiry</span>, or <span className="font-semibold text-slate-700">Starter</span>.
+            </p>
+            <button 
+              onClick={() => {
+                setSearchQuery('');
+                setNetworkFilter('All');
+                setValidityFilter('All');
+              }}
+              className="px-6 py-3 bg-white border border-slate-200 text-slate-700 font-semibold rounded-xl hover:bg-slate-50 hover:text-slate-900 transition-colors shadow-sm focus:ring-2 focus:ring-primary/20"
             >
-              <BundleCard 
-                network={bundle.network} 
-                size={bundle.size} 
-                price={bundle.standardPrice} 
-                category={bundle.category}
-                validity={bundle.validity}
-                onClick={(deliveryType, finalPrice) => setSelectedBundle({ network: bundle.network, size: bundle.size, finalPrice, deliveryType, category: bundle.category, validity: bundle.validity })}
-              />
-            </motion.div>
-          ))}
-        </motion.div>
+              Clear Search
+            </button>
+          </motion.div>
+        )}
       </div>
       
       <CheckoutModal 

@@ -10,10 +10,26 @@ interface BundleCardProps {
   instantPrice?: number;
   category?: string;
   validity?: string;
+  searchQuery?: string;
   onClick?: (deliveryType: 'standard' | 'instant', finalPrice: number) => void;
 }
 
-const BundleCard: React.FC<BundleCardProps> = ({ network, size, price, standardPrice, instantPrice, category = 'DATA', validity, onClick }) => {
+const HighlightText = ({ text, highlight }: { text: string; highlight?: string }) => {
+  if (!highlight || !highlight.trim()) return <>{text}</>;
+  const terms = highlight.trim().toLowerCase().split(/\s+/).map(t => t.replace(/[-\/\\^$*+?.()|[\]{}]/g, '\\$&')).filter(Boolean);
+  if (terms.length === 0) return <>{text}</>;
+  const regex = new RegExp(`(${terms.join('|')})`, 'gi');
+  const parts = text.split(regex);
+  return (
+    <>
+      {parts.map((part, i) => 
+        regex.test(part) ? <mark key={i} className="bg-yellow-200/60 text-slate-900 rounded-sm px-[2px]">{part}</mark> : part
+      )}
+    </>
+  );
+};
+
+const BundleCard: React.FC<BundleCardProps> = ({ network, size, price, standardPrice, instantPrice, category = 'DATA', validity, searchQuery, onClick }) => {
   const [delivery, setDelivery] = useState<'standard' | 'instant'>('instant');
 
   // Fallbacks
@@ -51,17 +67,19 @@ const BundleCard: React.FC<BundleCardProps> = ({ network, size, price, standardP
         <div className="flex gap-2 flex-wrap justify-end">
           {validity && (
             <div className="text-slate-500 text-[10px] font-semibold uppercase tracking-wider bg-slate-50 px-2 py-1 rounded-[6px] border border-slate-200">
-              {validity}
+              <HighlightText text={validity} highlight={searchQuery} />
             </div>
           )}
           <div className="text-slate-500 text-[10px] font-semibold uppercase tracking-wider bg-slate-50 px-2 py-1 rounded-full border border-slate-200">
-            {category}
+            <HighlightText text={category} highlight={searchQuery} />
           </div>
         </div>
       </div>
       
       <div className="mb-6">
-        <h3 className="text-3xl font-black text-slate-900 tracking-tight">{size}</h3>
+        <h3 className="text-3xl font-black text-slate-900 tracking-tight">
+          <HighlightText text={size} highlight={searchQuery} />
+        </h3>
       </div>
       
       <div className="mb-8 flex-grow flex flex-col gap-3">
