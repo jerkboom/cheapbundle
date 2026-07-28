@@ -7,7 +7,8 @@ import Input from './Input';
 export interface BundleType {
   network: string;
   size: string;
-  price: number;
+  finalPrice: number;
+  deliveryType: 'standard' | 'instant';
   category?: string;
   validity?: string;
 }
@@ -65,7 +66,6 @@ const CheckoutModal: React.FC<CheckoutModalProps> = ({ isOpen, onClose, bundle }
     e.preventDefault();
     if (!bundle) return;
     
-    // Basic validation
     if (!phone || phone.length < 9) {
       alert('Please enter a valid phone number');
       return;
@@ -78,13 +78,13 @@ const CheckoutModal: React.FC<CheckoutModalProps> = ({ isOpen, onClose, bundle }
       const payload = {
         network: bundle.network,
         bundleName: bundle.size,
-        price: bundle.price,
+        price: bundle.finalPrice,
+        deliveryType: bundle.deliveryType,
         category: bundle.category || 'data',
         validity: bundle.validity,
         phone,
         email: finalEmail
       };
-      console.log("Checkout Payload", payload);
 
       const { data: paymentData } = await api.post('/payments/initialize', payload);
 
@@ -98,29 +98,31 @@ const CheckoutModal: React.FC<CheckoutModalProps> = ({ isOpen, onClose, bundle }
     }
   };
 
+  if (!bundle) return null;
+
+  const isInstant = bundle.deliveryType === 'instant';
+
   return (
     <AnimatePresence>
-      {isOpen && bundle && (
+      {isOpen && (
         <>
-          {/* Backdrop */}
           <motion.div
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
             onClick={onClose}
-            className="fixed inset-0 bg-black/50 z-40 backdrop-blur-sm"
+            className="fixed inset-0 bg-black/60 z-40 backdrop-blur-sm"
           />
           
-          {/* Modal */}
           <div className="fixed inset-0 z-50 flex items-end md:items-center justify-center pointer-events-none p-0 md:p-4">
             <motion.div
               initial={{ y: '100%' }}
               animate={{ y: 0 }}
               exit={{ y: '100%' }}
               transition={{ type: 'spring', damping: 25, stiffness: 200 }}
-              className="bg-surface w-full md:w-[500px] max-h-[90vh] overflow-y-auto pointer-events-auto rounded-t-[24px] md:rounded-[24px] shadow-2xl flex flex-col relative border-t md:border border-border"
+              className="bg-surface w-full md:w-[450px] max-h-[90vh] overflow-y-auto pointer-events-auto rounded-t-[24px] md:rounded-[24px] shadow-2xl flex flex-col relative border-t md:border border-border"
             >
-              <div className="p-6 border-b border-border flex justify-between items-center sticky top-0 bg-surface/95 backdrop-blur z-10 rounded-t-[24px]">
+              <div className="p-6 border-b border-border flex justify-between items-center sticky top-0 bg-surface/95 backdrop-blur z-20 rounded-t-[24px]">
                 <h2 className="text-xl font-bold text-textPrimary">Complete Checkout</h2>
                 <button 
                   onClick={onClose}
@@ -131,30 +133,32 @@ const CheckoutModal: React.FC<CheckoutModalProps> = ({ isOpen, onClose, bundle }
               </div>
 
               <div className="p-6 space-y-6">
-                {/* Order Summary */}
-                <div className="bg-light p-4 rounded-[16px] space-y-4">
-                  <div className="flex justify-between items-center pb-3 border-b border-border">
-                    <span className="text-textSecondary font-medium">Network</span>
-                    <div className={`px-3 py-1 rounded-full text-xs font-bold ${networkColors[bundle.network] || 'bg-textPrimary text-surface'}`}>
-                      {bundle.network}
-                    </div>
+                {/* Premium Order Summary */}
+                <div className={`p-6 rounded-2xl border flex flex-col items-center text-center ${
+                  isInstant ? 'border-primary bg-primary/[0.03] shadow-sm' : 'border-border bg-surfaceSecondary/30'
+                }`}>
+                  <div className={`px-3 py-1 rounded-md text-[10px] font-bold uppercase tracking-widest mb-3 ${networkColors[bundle.network] || 'bg-textPrimary text-surface'}`}>
+                    {bundle.network}
                   </div>
-                  <div className="flex justify-between pb-3 border-b border-border">
-                    <span className="text-textSecondary font-medium">Bundle</span>
-                    <span className="font-bold text-textPrimary">
-                      {bundle.size} {bundle.validity && <span className="text-textSecondary text-sm ml-1 font-medium">({bundle.validity})</span>}
+                  <h3 className="text-3xl font-bold text-textPrimary tracking-tight mb-2">{bundle.size}</h3>
+                  
+                  <div className={`flex flex-col items-center gap-1 mb-4 ${isInstant ? 'text-primary' : 'text-textSecondary'}`}>
+                    <span className="font-semibold text-sm">
+                      {isInstant ? 'Instant Delivery' : 'Standard Delivery'}
+                    </span>
+                    <span className="text-xs font-medium opacity-80">
+                      Typically delivered within {isInstant ? '10–60 seconds' : 'a few minutes'}
                     </span>
                   </div>
-                  <div className="flex justify-between items-center">
-                    <span className="text-lg font-bold text-textPrimary">Total</span>
-                    <span className="text-2xl font-black text-primary">GHS {bundle.price.toFixed(2)}</span>
+                  
+                  <div className={`text-3xl font-semibold tracking-tight ${isInstant ? 'text-primary' : 'text-textPrimary'}`}>
+                    GHS {bundle.finalPrice.toFixed(2)}
                   </div>
                 </div>
 
-                {/* Form */}
                 <form id="checkout-form" onSubmit={handleCheckout} className="space-y-4">
                   <Input 
-                    label="Recipient Phone Number (Required)" 
+                    label="Enter Phone Number" 
                     type="tel" 
                     value={phone} 
                     onChange={(e) => setPhone(e.target.value)} 
@@ -162,21 +166,21 @@ const CheckoutModal: React.FC<CheckoutModalProps> = ({ isOpen, onClose, bundle }
                     required 
                   />
                   <Input 
-                    label="Email (Optional for receipts)" 
+                    label="Email (Optional)" 
                     type="email" 
                     value={email} 
                     onChange={(e) => setEmail(e.target.value)} 
-                    placeholder="e.g. name@example.com"
+                    placeholder="e.g. email@example.com"
                   />
                 </form>
               </div>
 
-              <div className="p-6 border-t border-border mt-auto bg-surface rounded-b-[24px] sticky bottom-0 z-10">
+              <div className="p-6 border-t border-border mt-auto bg-surface rounded-b-[24px] sticky bottom-0 z-20">
                 <button 
                   form="checkout-form"
                   type="submit" 
                   disabled={loading}
-                  className="w-full bg-primary hover:bg-[#1D4ED8] text-surface font-bold py-4 rounded-[14px] transition-colors duration-200 shadow-md hover:shadow-lg disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
+                  className="w-full bg-primary hover:bg-primaryHover text-surface font-bold py-4 rounded-[14px] transition-colors duration-200 shadow-md hover:shadow-lg disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2 text-lg"
                 >
                   {loading ? (
                     <>
@@ -184,15 +188,9 @@ const CheckoutModal: React.FC<CheckoutModalProps> = ({ isOpen, onClose, bundle }
                       Processing...
                     </>
                   ) : (
-                    `Pay GHS ${bundle.price.toFixed(2)}`
+                    `Continue to Payment`
                   )}
                 </button>
-                <div className="text-center mt-3">
-                  <p className="text-textSecondary text-xs font-medium">Secured by Paystack</p>
-                  <div className="flex justify-center gap-2 mt-1 text-[10px] text-textMuted uppercase tracking-wider">
-                    <span>Mobile Money</span> • <span>Card</span>
-                  </div>
-                </div>
               </div>
             </motion.div>
           </div>

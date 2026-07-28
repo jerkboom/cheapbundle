@@ -175,8 +175,15 @@ const PaymentSuccess: React.FC = () => {
             <div className="flex items-center gap-4 pt-2">
               <Clock className="text-primary" size={24} />
               <div>
-                <p className="text-xs text-textSecondary uppercase font-bold tracking-wider">Estimated delivery</p>
-                <p className="text-success font-bold">Under 60 seconds</p>
+                <p className="text-xs text-textSecondary uppercase font-bold tracking-wider">Delivery Speed</p>
+                {orderData?.deliveryType === 'standard' ? (
+                  <p className="text-textMain font-bold">💰 Standard Delivery</p>
+                ) : (
+                  <p className="text-primary font-bold">⚡ Instant Delivery</p>
+                )}
+                <p className="text-textMuted text-sm mt-1">
+                  Estimated: {orderData?.deliveryEstimatedTime || '10-60 sec'}
+                </p>
               </div>
             </div>
           </div>

@@ -33,8 +33,8 @@ const Home: React.FC = () => {
   return (
     <div>
       {/* Network Cards */}
-      <section className="px-4 py-10 max-w-[1280px] mx-auto">
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 md:gap-6">
+      <section className="px-4 py-10 max-w-7xl mx-auto">
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4 md:gap-6">
           {['MTN Ghana', 'Telecel Ghana', 'AirtelTigo'].map((network, i) => (
             <Link to={`/bundles?network=${network.split(' ')[0]}`} key={network}>
               <motion.div 
@@ -62,7 +62,7 @@ const Home: React.FC = () => {
       </section>
 
       {/* Featured Bundles */}
-      <section className="px-4 py-20 max-w-[1280px] mx-auto">
+      <section className="px-4 py-20 max-w-7xl mx-auto">
         <div className="flex justify-between items-end mb-12">
           <div>
             <h4 className="text-primary font-bold tracking-widest text-sm mb-2">POPULAR RIGHT NOW</h4>
@@ -73,10 +73,10 @@ const Home: React.FC = () => {
           </Link>
         </div>
         
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 md:gap-8 auto-rows-fr">
-          <div className="h-full"><BundleCard network="MTN" size="10GB" price={23.55} category="DATA" validity="Non-Expiry" onClick={() => setSelectedBundle({ network: 'MTN', size: '10GB', price: 23.55, category: 'DATA', validity: 'Non-Expiry' })} /></div>
-          <div className="h-full"><BundleCard network="Telecel" size="11GB" price={21.79} category="DATA" validity="Non-Expiry" onClick={() => setSelectedBundle({ network: 'Telecel', size: '11GB', price: 21.79, category: 'DATA', validity: 'Non-Expiry' })} /></div>
-          <div className="h-full sm:col-span-2 lg:col-span-1"><BundleCard network="AirtelTigo" size="10GB" price={34.99} category="DATA" validity="Non-Expiry" onClick={() => setSelectedBundle({ network: 'AirtelTigo', size: '10GB', price: 34.99, category: 'DATA', validity: 'Non-Expiry' })} /></div>
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6 md:gap-8 auto-rows-fr">
+          <div className="h-full"><BundleCard network="MTN" size="10GB" price={23.55} category="DATA" validity="Non-Expiry" onClick={(deliveryType, finalPrice) => setSelectedBundle({ network: 'MTN', size: '10GB', finalPrice, deliveryType, category: 'DATA', validity: 'Non-Expiry' })} /></div>
+          <div className="h-full"><BundleCard network="Telecel" size="11GB" price={21.79} category="DATA" validity="Non-Expiry" onClick={(deliveryType, finalPrice) => setSelectedBundle({ network: 'Telecel', size: '11GB', finalPrice, deliveryType, category: 'DATA', validity: 'Non-Expiry' })} /></div>
+          <div className="h-full sm:col-span-2 lg:col-span-1"><BundleCard network="AirtelTigo" size="10GB" price={34.99} category="DATA" validity="Non-Expiry" onClick={(deliveryType, finalPrice) => setSelectedBundle({ network: 'AirtelTigo', size: '10GB', finalPrice, deliveryType, category: 'DATA', validity: 'Non-Expiry' })} /></div>
         </div>
         
         <Link to="/bundles" className="sm:hidden mt-8 text-textSecondary hover:text-primary font-medium flex items-center justify-center gap-2 group transition-colors duration-200 w-full p-4 border border-border rounded-[14px]">
@@ -85,13 +85,13 @@ const Home: React.FC = () => {
       </section>
 
       {/* How it Works */}
-      <section className="px-4 py-16 md:py-20 max-w-[1280px] mx-auto">
+      <section className="px-4 py-16 md:py-20 max-w-7xl mx-auto">
         <div className="text-center mb-10 md:mb-16">
           <h2 className="text-3xl md:text-4xl font-black text-textPrimary mb-4">How it Works</h2>
           <p className="text-textSecondary text-base md:text-lg">Get your data bundle in four simple steps.</p>
         </div>
         
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
           {[
             { step: '01', title: 'Pick network', desc: 'Select your preferred network provider.' },
             { step: '02', title: 'Choose bundle', desc: 'Find the perfect data plan for your needs.' },
@@ -118,7 +118,7 @@ const Home: React.FC = () => {
       </section>
 
       {/* Statistics */}
-      <section className="px-4 py-10 max-w-[1280px] mx-auto">
+      <section className="px-4 py-10 max-w-7xl mx-auto">
         <div className="bg-surface shadow-sm rounded-[18px] border border-border p-8 md:p-16 grid grid-cols-1 sm:grid-cols-3 gap-8 md:gap-6 divide-y sm:divide-y-0 sm:divide-x divide-border">
           <div className="text-center pt-6 sm:pt-0 first:pt-0">
             <h3 className="text-4xl md:text-5xl font-black text-textPrimary mb-2">10,040+</h3>
