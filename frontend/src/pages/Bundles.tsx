@@ -8,6 +8,7 @@ import CheckoutModal from '../components/CheckoutModal';
 import type { BundleType } from '../components/CheckoutModal';
 
 const mtnBundles = [
+  { size: '1GB', standardPrice: 6, instantPrice: 11, category: 'STARTER', validity: 'Non-Expiry' },
   { size: '4GB', standardPrice: 20, instantPrice: 25, category: 'STARTER', validity: 'Non-Expiry' },
   { size: '500GB', standardPrice: 220, instantPrice: 225, category: 'MEGA', validity: '30 Days' },
   { size: '1TB', standardPrice: 400, instantPrice: 405, category: 'MEGA', validity: 'Monthly' },
@@ -42,6 +43,7 @@ const mtnBundles = [
 ];
 
 const telecelBundles = [
+  { size: '1GB', standardPrice: 6, instantPrice: 11, category: 'STARTER', validity: 'Non-Expiry' },
   { size: '8GB', standardPrice: 17.45, instantPrice: 22.45, category: 'DATA', validity: 'Non-Expiry' },
   { size: '11GB', standardPrice: 21.79, instantPrice: 26.79, category: 'DATA', validity: 'Non-Expiry' },
   { size: '15GB', standardPrice: 43.79, instantPrice: 48.79, category: 'DATA', validity: 'Non-Expiry' },
@@ -71,6 +73,7 @@ const telecelBundles = [
 ];
 
 const airteltigoBundles = [
+  { size: '1GB', standardPrice: 6, instantPrice: 11, category: 'STARTER', validity: 'Non-Expiry' },
   { size: '7GB', standardPrice: 18.5, instantPrice: 23.5, category: 'DATA', validity: 'Non-Expiry' },
   { size: '8GB', standardPrice: 19.99, instantPrice: 24.99, category: 'DATA', validity: 'Non-Expiry' },
   { size: '7GB+', standardPrice: 19.5, instantPrice: 24.5, category: 'DATA', validity: 'Non-Expiry' },
