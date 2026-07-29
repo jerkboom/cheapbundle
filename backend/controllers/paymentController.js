@@ -3,6 +3,7 @@ const Bundle = require('../models/Bundle');
 const paystack = require('../utils/paystack');
 const crypto = require('crypto');
 const mongoose = require('mongoose');
+const whatsappService = require('../services/whatsappService');
 
 exports.initializePayment = async (req, res) => {
     const { network, bundleName, price, deliveryType, category, validity, phone, email } = req.body;
@@ -93,6 +94,9 @@ exports.verifyPayment = async (req, res) => {
                 order.paymentStatus = 'failed';
                 order.status = 'failed';
                 await order.save();
+                
+                // Send WhatsApp Payment Failed Notification (Fire and forget)
+                whatsappService.sendOrderFailed(order).catch(err => console.error("WhatsApp notification failed:", err));
             }
             res.status(400).json({ success: false, message: 'Payment verification failed' });
         }
@@ -117,6 +121,9 @@ exports.paystackWebhook = async (req, res) => {
                     order.status = 'processing';
                     order.paidAt = new Date();
                     await order.save();
+                    
+                    // Send WhatsApp Order Confirmation (Fire and forget)
+                    whatsappService.sendOrderConfirmation(order).catch(err => console.error("WhatsApp notification failed:", err));
                 }
             }
         }
