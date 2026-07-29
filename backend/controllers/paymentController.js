@@ -106,13 +106,19 @@ exports.verifyPayment = async (req, res) => {
 };
 
 exports.paystackWebhook = async (req, res) => {
+    console.log("========== WEBHOOK RECEIVED ==========");
+    console.log(req.method);
+    console.log(req.originalUrl);
+    
     try {
         const secret = process.env.PAYSTACK_SECRET_KEY;
-        const bodyStr = req.body.toString('utf8');
+        // Use rawBody saved by express.json middleware for accurate signature verification
+        const bodyStr = req.rawBody ? req.rawBody.toString('utf8') : JSON.stringify(req.body);
         const hash = crypto.createHmac('sha512', secret).update(bodyStr).digest('hex');
 
         if (hash === req.headers['x-paystack-signature']) {
-            const event = JSON.parse(bodyStr);
+            // req.body is already parsed into an object by express.json()
+            const event = typeof req.body === 'object' ? req.body : JSON.parse(bodyStr);
             if (event.event === 'charge.success') {
                 const reference = event.data.reference;
                 const order = await Order.findOne({ paystackReference: reference });
