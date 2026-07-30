@@ -13,7 +13,15 @@ const sendWhatsAppMessage = async (to, body, type = 'notification') => {
 
         // Ensure instanceId starts with 'instance' as required by UltraMsg
         const formattedInstanceId = instanceId.startsWith('instance') ? instanceId : `instance${instanceId}`;
-        const url = `${baseUrl}/${formattedInstanceId}/messages/chat`;
+        
+        // Construct URL safely (if user pasted the full URL into BASE_URL by accident)
+        let cleanBaseUrl = baseUrl.replace(/\/$/, ''); // remove trailing slash
+        let url;
+        if (cleanBaseUrl.endsWith(formattedInstanceId)) {
+            url = `${cleanBaseUrl}/messages/chat`;
+        } else {
+            url = `${cleanBaseUrl}/${formattedInstanceId}/messages/chat`;
+        }
         
         // Format phone number to international format for Ghana
         let formattedPhone = to.replace(/\s+/g, '');
