@@ -11,7 +11,9 @@ const sendWhatsAppMessage = async (to, body, type = 'notification') => {
             return null;
         }
 
-        const url = `${baseUrl}/${instanceId}/messages/chat`;
+        // Ensure instanceId starts with 'instance' as required by UltraMsg
+        const formattedInstanceId = instanceId.startsWith('instance') ? instanceId : `instance${instanceId}`;
+        const url = `${baseUrl}/${formattedInstanceId}/messages/chat`;
         
         // Format phone number to international format for Ghana
         let formattedPhone = to.replace(/\s+/g, '');

@@ -106,41 +106,36 @@ exports.verifyPayment = async (req, res) => {
 };
 
 exports.paystackWebhook = async (req, res) => {
-    console.log("========== WEBHOOK RECEIVED ==========");
-    console.log(req.method);
-    console.log(req.originalUrl);
-    console.log("HEADERS:", req.headers);
-    
     try {
-        console.log("BODY:", req.body);
-        
-        // Temporarily bypassing signature verification for debugging
-        const event = typeof req.body === 'object' ? req.body : JSON.parse(req.rawBody ? req.rawBody.toString('utf8') : JSON.stringify(req.body));
-        
-        if (event.event === 'charge.success') {
-            const reference = event.data.reference;
-            const order = await Order.findOne({ paystackReference: reference });
-            if (order && order.paymentStatus !== 'paid') {
-                order.paymentStatus = 'paid';
-                order.status = 'processing';
-                order.paidAt = new Date();
-                await order.save();
-                
-                console.log("Order updated to paid via webhook. Sending WhatsApp...");
-                console.log(order.phone);
-                console.log(order.paystackReference);
-                
-                // Send WhatsApp Order Confirmation
-                whatsappService.sendOrderConfirmation(order).then(response => {
-                    console.log("WhatsApp API Response:", response);
-                }).catch(err => {
-                    console.error("WhatsApp notification failed. Stack:", err.stack);
-                    if (err.response) {
-                        console.error("WhatsApp Response Status:", err.response.status);
-                        console.error("WhatsApp Response Data:", err.response.data);
-                    }
-                });
+        const secret = process.env.PAYSTACK_SECRET_KEY;
+        // Use rawBody saved by express.json middleware for accurate signature verification
+        const bodyStr = req.rawBody ? req.rawBody.toString('utf8') : JSON.stringify(req.body);
+        const hash = crypto.createHmac('sha512', secret).update(bodyStr).digest('hex');
+
+        if (hash === req.headers['x-paystack-signature']) {
+            // req.body is already parsed into an object by express.json()
+            const event = typeof req.body === 'object' ? req.body : JSON.parse(bodyStr);
+            if (event.event === 'charge.success') {
+                const reference = event.data.reference;
+                const order = await Order.findOne({ paystackReference: reference });
+                if (order && order.paymentStatus !== 'paid') {
+                    order.paymentStatus = 'paid';
+                    order.status = 'processing';
+                    order.paidAt = new Date();
+                    await order.save();
+                    
+                    console.log(`Order ${reference} updated to paid via webhook. Sending WhatsApp...`);
+                    
+                    // Send WhatsApp Order Confirmation
+                    whatsappService.sendOrderConfirmation(order).then(response => {
+                        console.log("WhatsApp Notification Dispatched");
+                    }).catch(err => {
+                        console.error("WhatsApp notification failed:", err.message);
+                    });
+                }
             }
+        } else {
+            console.warn("Paystack signature verification failed.");
         }
         res.sendStatus(200);
     } catch (error) {
