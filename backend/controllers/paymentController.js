@@ -26,9 +26,10 @@ exports.initializePayment = async (req, res) => {
         const userEmail = req.user?.email;
         let customerEmail = userEmail || email;
         
-        // Replace hardcoded static emails with unique tracking email
-        if (!customerEmail || customerEmail === 'guest@bundlehub.com' || customerEmail === 'no-reply@cheapbundlehub.com') {
-            customerEmail = `guest-${Date.now()}-${Math.random().toString(36).substring(2,8)}@bundlehub.com`;
+        // Replace hardcoded static emails with deterministic tracking email
+        if (!customerEmail || customerEmail === 'guest@bundlehub.com' || customerEmail === 'no-reply@cheapbundlehub.com' || customerEmail.startsWith('guest-')) {
+            const cleanPhone = phone.replace(/\D/g, "");
+            customerEmail = `${cleanPhone}@bundle-hub.com`;
         }
 
         console.log("========== PAYSTACK INITIALIZE ==========");
