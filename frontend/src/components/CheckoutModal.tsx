@@ -73,8 +73,6 @@ const CheckoutModal: React.FC<CheckoutModalProps> = ({ isOpen, onClose, bundle }
     
     setLoading(true);
     try {
-      const finalEmail = email.trim() !== '' ? email : 'guest@bundlehub.com';
-      
       const payload = {
         network: bundle.network,
         bundleName: bundle.size,
@@ -83,7 +81,7 @@ const CheckoutModal: React.FC<CheckoutModalProps> = ({ isOpen, onClose, bundle }
         category: bundle.category || 'data',
         validity: bundle.validity,
         phone,
-        email: finalEmail
+        email: email.trim() !== '' ? email.trim() : undefined
       };
 
       const { data: paymentData } = await api.post('/payments/initialize', payload);

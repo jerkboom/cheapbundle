@@ -42,6 +42,7 @@ exports.initializePayment = async (req, res) => {
         const response = await paystack.post('/transaction/initialize', {
             email: customerEmail,
             amount: Math.round(amount * 100),
+            currency: 'GHS',
             reference,
             callback_url: `${process.env.FRONTEND_URL || 'http://localhost:5173'}/payment/callback`,
             channels: ["mobile_money", "card"],
