@@ -22,13 +22,29 @@ exports.initializePayment = async (req, res) => {
         const amount = Number(price);
         const reference = `CBHG-${Date.now()}-${Math.floor(Math.random() * 1000000)}`;
 
-        console.log("Creating Order", req.body);
+        // Determine unique customer email
+        const userEmail = req.user?.email;
+        let customerEmail = userEmail || email;
+        
+        // Replace hardcoded static emails with unique tracking email
+        if (!customerEmail || customerEmail === 'guest@bundlehub.com' || customerEmail === 'no-reply@cheapbundlehub.com') {
+            customerEmail = `guest-${Date.now()}-${Math.random().toString(36).substring(2,8)}@bundlehub.com`;
+        }
+
+        console.log("========== PAYSTACK INITIALIZE ==========");
+        console.log({
+            email: customerEmail,
+            reference,
+            amount,
+            network
+        });
 
         const response = await paystack.post('/transaction/initialize', {
-            email: email || 'no-reply@cheapbundlehub.com',
+            email: customerEmail,
             amount: Math.round(amount * 100),
             reference,
             callback_url: `${process.env.FRONTEND_URL || 'http://localhost:5173'}/payment/callback`,
+            channels: ["mobile_money", "card"],
             metadata: {
                 phone,
                 network,
@@ -43,7 +59,7 @@ exports.initializePayment = async (req, res) => {
 
         const order = await Order.create({
             phone,
-            email,
+            email: customerEmail,
             network,
             bundleName,
             category,
