@@ -42,16 +42,18 @@ const Checkout: React.FC = () => {
     
     setLoading(true);
     try {
-      const finalEmail = email.trim() !== '' ? email : 'guest@bundlehub.com';
-      
-      const { data: paymentData } = await api.post('/payments/initialize', {
+      const payload = {
         network: bundle.network,
         bundleName: bundle.size,
-        price: bundle.price,
-        category: 'data',
+        price: bundle.finalPrice,
+        deliveryType: bundle.deliveryType,
+        category: bundle.category || 'data',
+        validity: bundle.validity,
         phone,
-        email: finalEmail
-      });
+        email: email.trim() !== '' ? email.trim() : undefined
+      };
+      
+      const { data: paymentData } = await api.post('/payments/initialize', payload);
 
       const authorizationUrl = paymentData.data?.authorization_url || paymentData.authorization_url;
       window.location.href = authorizationUrl;
