@@ -45,10 +45,10 @@ const Checkout: React.FC = () => {
       const payload = {
         network: bundle.network,
         bundleName: bundle.size,
-        price: bundle.finalPrice,
-        deliveryType: bundle.deliveryType,
-        category: bundle.category || 'data',
-        validity: bundle.validity,
+        price: bundle.price,
+        deliveryType: 'standard', // default for old checkout page
+        category: 'data', // default for old checkout page
+        validity: '30 Days', // default for old checkout page
         phone,
         email: email.trim() !== '' ? email.trim() : undefined
       };
