@@ -47,6 +47,7 @@ exports.initializePayment = async (req, res) => {
         else if (normalizedNetwork === 'telecel' || normalizedNetwork === 'vodafone') provider = 'vod';
         else if (normalizedNetwork === 'airteltigo') provider = 'tgo';
 
+        console.time('Paystack API Initialization');
         const response = await paystack.post('/transaction/initialize', {
             email: customerEmail,
             amount: Math.round(amount * 100),
@@ -67,9 +68,11 @@ exports.initializePayment = async (req, res) => {
                 deliveryType
             }
         });
+        console.timeEnd('Paystack API Initialization');
 
         const deliveryEstimatedTime = deliveryType === 'standard' ? 'Few minutes' : '10-60 sec';
 
+        console.time('Database Order Save');
         const order = await Order.create({
             phone,
             email: customerEmail,
@@ -85,19 +88,28 @@ exports.initializePayment = async (req, res) => {
             paymentStatus: 'pending',
             status: 'pending'
         });
+        console.timeEnd('Database Order Save');
 
-        console.log("Saved Order", order);
+        console.log("Saved Order", order.paystackReference);
 
         res.json({ 
             authorization_url: response.data.data.authorization_url, 
             reference 
         });
     } catch (error) {
-        console.error("Error in initializePayment:", error);
+        console.error("========== PAYMENT INITIALIZATION ERROR ==========");
+        console.error("Message:", error.message);
         if (error.response && error.response.data) {
-            console.error("Paystack API Error Response:", error.response.data);
+            console.error("Paystack API Status:", error.response.status);
+            console.error("Paystack API Response:", JSON.stringify(error.response.data, null, 2));
+            console.error("Request Payload:", error.config?.data);
+        } else {
+            console.error("Stack Trace:", error.stack);
         }
-        res.status(500).json({ message: error.message || 'Internal server error', stack: error.stack });
+        res.status(500).json({ 
+            message: 'Failed to initialize payment',
+            error: error.response?.data?.message || error.message 
+        });
     }
 };
 
