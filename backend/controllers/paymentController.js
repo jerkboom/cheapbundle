@@ -40,6 +40,13 @@ exports.initializePayment = async (req, res) => {
             network
         });
 
+        // Map BundleHub network names to Paystack provider codes
+        let provider;
+        const normalizedNetwork = network.toLowerCase();
+        if (normalizedNetwork === 'mtn') provider = 'mtn';
+        else if (normalizedNetwork === 'telecel' || normalizedNetwork === 'vodafone') provider = 'vod';
+        else if (normalizedNetwork === 'airteltigo') provider = 'tgo';
+
         const response = await paystack.post('/transaction/initialize', {
             email: customerEmail,
             amount: Math.round(amount * 100),
@@ -47,6 +54,10 @@ exports.initializePayment = async (req, res) => {
             reference,
             callback_url: `${process.env.FRONTEND_URL || 'http://localhost:5173'}/payment/callback`,
             channels: ["mobile_money", "card"],
+            mobile_money: provider ? {
+                phone: phone,
+                provider: provider
+            } : undefined,
             metadata: {
                 phone,
                 network,
