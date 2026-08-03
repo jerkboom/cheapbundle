@@ -54,7 +54,7 @@ exports.initializePayment = async (req, res) => {
             currency: 'GHS',
             reference,
             callback_url: `${process.env.FRONTEND_URL || 'http://localhost:5173'}/payment/callback`,
-            channels: ["mobile_money", "card"],
+            channels: ["mobile_money"], // STRICTLY Mobile Money to enable instant prompt bypass
             mobile_money: provider ? {
                 phone: phone,
                 provider: provider
