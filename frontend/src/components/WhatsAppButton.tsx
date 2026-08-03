@@ -14,7 +14,7 @@ const WhatsAppButton: React.FC = () => {
 
   const handleClick = () => {
     window.open(
-      "https://wa.me/233245726892?text=Hi%20Cheap%20Bundle%20%F0%9F%91%8B%0A%0AI'm%20interested%20in%20buying%20a%20data%20bundle%20and%20would%20like%20some%20assistance.",
+      "https://wa.me/233541234567?text=Hi%20Cheap%20Bundle%20%F0%9F%91%8B%0A%0AI'm%20interested%20in%20buying%20a%20data%20bundle%20and%20would%20like%20some%20assistance.",
       '_blank',
       'noopener,noreferrer'
     );
