@@ -9,12 +9,17 @@ const PublicLayout: React.FC = () => {
   const location = useLocation();
 
   useEffect(() => {
-    // Quietly ping the backend on mount so it wakes up immediately in the background
-    const apiUrl = import.meta.env.VITE_API_URL || 'https://cheapbundle.onrender.com/api';
-    const baseUrl = apiUrl.endsWith('/api') ? apiUrl.slice(0, -4) : apiUrl;
-    fetch(baseUrl).catch(() => {
-      // Ignore errors; this is just a warm-up ping
-    });
+    // Quietly ping the backend after a delay so it wakes up in the background
+    // without blocking the browser's initial load/render event (crucial for iOS Safari).
+    const timer = setTimeout(() => {
+      const apiUrl = import.meta.env.VITE_API_URL || 'https://cheapbundle.onrender.com/api';
+      const baseUrl = apiUrl.endsWith('/api') ? apiUrl.slice(0, -4) : apiUrl;
+      fetch(baseUrl).catch(() => {
+        // Ignore errors; this is just a warm-up ping
+      });
+    }, 3000);
+
+    return () => clearTimeout(timer);
   }, []);
 
   return (
