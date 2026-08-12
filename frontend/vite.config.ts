@@ -6,6 +6,7 @@ export default defineConfig({
   plugins: [react()],
   build: {
     chunkSizeWarningLimit: 1000,
-    target: 'es2020', // Ensure broad compatibility for Safari and mobile browsers
+    target: 'es2020',
+    modulePreload: false, // Resolve iOS Safari loading freezes / modulepreload bugs
   }
 })
