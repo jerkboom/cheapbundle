@@ -1,16 +1,13 @@
 import React, { useEffect, useState } from 'react';
-import { useSearchParams, Link, useLocation } from 'react-router-dom';
+import { useSearchParams, Link } from 'react-router-dom';
 import api from '../api/axios';
 import { motion } from 'framer-motion';
-import { CheckCircle, Package, Phone, FileText, Clock, ArrowRight, CreditCard, Calendar, XCircle, RefreshCcw, Wifi } from 'lucide-react';
+import { CheckCircle, Phone, Package, ArrowRight, XCircle, RefreshCcw } from 'lucide-react';
 
 const PaymentSuccess: React.FC = () => {
   const [searchParams] = useSearchParams();
-  const location = useLocation();
   
-  console.log("Location State:", location.state);
-  console.log("Location State Order:", location.state?.order);
-  
+
   const reference = searchParams.get('reference') || searchParams.get('trxref') || 'N/A';
   
   const [orderData, setOrderData] = useState<any>(null);
@@ -30,10 +27,7 @@ const PaymentSuccess: React.FC = () => {
 
       const { data } = await api.get(`/orders/track?query=${reference}`);
 
-      console.log("TRACK RESPONSE", data);
-
       if (Array.isArray(data) && data.length > 0) {
-        console.log("SETTING ORDER", data[0]);
         setOrderData(data[0]);
       } else {
         setError(true);
@@ -51,8 +45,6 @@ const PaymentSuccess: React.FC = () => {
       fetchOrder();
     }
   }, [reference, orderData]);
-
-  console.log("CURRENT orderData:", orderData);
 
   if (loading) {
     return (
@@ -73,19 +65,19 @@ const PaymentSuccess: React.FC = () => {
         <motion.div 
           initial={{ opacity: 0, scale: 0.9 }}
           animate={{ opacity: 1, scale: 1 }}
-          className="max-w-xl w-full bg-card border border-borderDark rounded-[3rem] p-8 md:p-12 text-center"
+          className="max-w-xl w-full bg-white border border-slate-200 rounded-[24px] p-8 md:p-12 text-center shadow-sm"
         >
-          <XCircle size={64} className="text-error mx-auto mb-6" />
-          <h1 className="text-3xl font-black text-textMain mb-4">Order Not Found</h1>
-          <p className="text-textMuted mb-8">We couldn't retrieve your order details. Your payment might have been successful, but we can't find the order.</p>
+          <XCircle size={64} className="text-danger mx-auto mb-6" />
+          <h1 className="text-3xl font-black text-textPrimary mb-4">Order Not Found</h1>
+          <p className="text-textSecondary mb-8">We couldn't retrieve your order details. Your payment might have been successful, but we can't find the order.</p>
           <button 
             onClick={fetchOrder}
-            className="bg-primary hover:bg-primaryHover text-textMain font-bold py-4 px-8 rounded-2xl inline-flex items-center justify-center gap-2 transition-colors mb-4"
+            className="bg-primary hover:bg-[#1D4ED8] text-white font-bold py-4 px-8 rounded-xl inline-flex items-center justify-center gap-2 transition-colors mb-4"
           >
             <RefreshCcw size={20} /> Retry
           </button>
           <div className="mt-4">
-            <Link to="/support" className="text-primary hover:underline">Contact Support</Link>
+            <Link to="/" className="text-primary hover:underline">Go Home</Link>
           </div>
         </motion.div>
       </div>
@@ -93,113 +85,67 @@ const PaymentSuccess: React.FC = () => {
   }
 
   return (
-    <>
-      <div className="max-w-[1280px] mx-auto flex items-center justify-center py-20 px-4">
-        <motion.div 
-          initial={{ opacity: 0, scale: 0.9 }}
-          animate={{ opacity: 1, scale: 1 }}
-          className="max-w-xl w-full bg-card border border-borderDark rounded-[3rem] p-8 md:p-12 relative overflow-hidden"
-        >
-          <div className="absolute top-0 left-1/2 -translate-x-1/2 w-full h-32 bg-success/10 blur-[50px] pointer-events-none"></div>
-          
-          <div className="text-center mb-10 relative z-10">
-            <motion.div 
-              initial={{ scale: 0 }}
-              animate={{ scale: 1 }}
-              transition={{ type: "spring", delay: 0.2 }}
-              className="w-24 h-24 bg-success/10 text-success rounded-full flex items-center justify-center mx-auto mb-6"
-            >
-              <CheckCircle size={48} />
-            </motion.div>
-            <h1 className="text-4xl font-black text-green-600 mb-2">Payment Successful</h1>
-            <p className="text-textMuted text-lg">Your payment has been verified.</p>
-          </div>
+    <div className="max-w-[1280px] mx-auto flex items-center justify-center py-20 px-4">
+      <motion.div 
+        initial={{ opacity: 0, scale: 0.9 }}
+        animate={{ opacity: 1, scale: 1 }}
+        className="max-w-md w-full bg-white border border-slate-200 rounded-[24px] p-8 md:p-10 relative overflow-hidden shadow-sm"
+      >
+        {/* Success glow */}
+        <div className="absolute top-0 left-1/2 -translate-x-1/2 w-full h-32 bg-green-500/10 blur-[50px] pointer-events-none"></div>
+        
+        {/* Success icon & heading */}
+        <div className="text-center mb-8 relative z-10">
+          <motion.div 
+            initial={{ scale: 0 }}
+            animate={{ scale: 1 }}
+            transition={{ type: "spring", delay: 0.2 }}
+            className="w-20 h-20 bg-green-50 text-green-500 rounded-full flex items-center justify-center mx-auto mb-5"
+          >
+            <CheckCircle size={40} />
+          </motion.div>
+          <h1 className="text-3xl font-black text-green-600 mb-1">Payment Successful</h1>
+          <p className="text-textSecondary">Your bundle is on its way!</p>
+        </div>
 
-          <div className="bg-backgroundSecondary border border-borderDark rounded-3xl p-6 space-y-4 mb-10 relative z-10">
-            <div className="flex items-center gap-4 border-b border-borderDark pb-4">
-              <Package className="text-primary" size={24} />
-              <div>
-                <p className="text-xs text-textSecondary uppercase font-bold tracking-wider">Bundle</p>
-                <p className="text-textMain font-medium">{orderData?.bundleName || 'N/A'}</p>
-              </div>
+        {/* Only phone number and bundle */}
+        <div className="bg-slate-50 border border-slate-200 rounded-2xl p-5 space-y-4 mb-8 relative z-10">
+          <div className="flex items-center gap-4">
+            <div className="w-10 h-10 bg-primary/10 rounded-xl flex items-center justify-center flex-shrink-0">
+              <Phone className="text-primary" size={20} />
             </div>
-
-            <div className="flex items-center gap-4 border-b border-borderDark pb-4">
-              <Wifi className="text-primary" size={24} />
-              <div>
-                <p className="text-xs text-textSecondary uppercase font-bold tracking-wider">Network</p>
-                <p className="text-textMain font-medium uppercase">{orderData?.network || 'N/A'}</p>
-              </div>
-            </div>
-            
-            <div className="flex items-center gap-4 border-b border-borderDark pb-4">
-              <Phone className="text-primary" size={24} />
-              <div>
-                <p className="text-xs text-textSecondary uppercase font-bold tracking-wider">Recipient Phone Number</p>
-                <p className="text-textMain font-medium">{orderData?.phone || 'N/A'}</p>
-              </div>
-            </div>
-
-            <div className="flex items-center gap-4 border-b border-borderDark pb-4">
-              <CreditCard className="text-primary" size={24} />
-              <div>
-                <p className="text-xs text-textSecondary uppercase font-bold tracking-wider">Amount Paid</p>
-                <p className="text-textMain font-medium">{orderData?.amount ? `GHS ${orderData.amount}` : 'N/A'}</p>
-              </div>
-            </div>
-
-            <div className="flex items-center gap-4 border-b border-borderDark pb-4">
-              <Calendar className="text-primary" size={24} />
-              <div>
-                <p className="text-xs text-textSecondary uppercase font-bold tracking-wider">Validity</p>
-                <p className="text-textMain font-medium capitalize">{orderData?.category || 'N/A'}</p>
-              </div>
-            </div>
-
-            <div className="flex items-center gap-4 border-b border-borderDark pb-4">
-              <FileText className="text-primary" size={24} />
-              <div>
-                <p className="text-xs text-textSecondary uppercase font-bold tracking-wider">Payment Reference</p>
-                <p className="text-textMain font-medium font-mono text-sm">{reference}</p>
-              </div>
-            </div>
-            
-            <div className="flex items-center gap-4 border-b border-borderDark pb-4">
-              <CheckCircle className="text-primary" size={24} />
-              <div>
-                <p className="text-xs text-textSecondary uppercase font-bold tracking-wider">Status</p>
-                <p className="text-textMain font-medium capitalize">{orderData?.status || 'Processing'}</p>
-              </div>
-            </div>
-
-            <div className="flex items-center gap-4 pt-2">
-              <Clock className="text-primary" size={24} />
-              <div>
-                <p className="text-xs text-textSecondary uppercase font-bold tracking-wider">Delivery Speed</p>
-                {orderData?.deliveryType === 'standard' ? (
-                  <p className="text-textMain font-bold">💰 Standard Delivery</p>
-                ) : (
-                  <p className="text-primary font-bold">⚡ Instant Delivery</p>
-                )}
-                <p className="text-textMuted text-sm mt-1">
-                  Estimated: {orderData?.deliveryEstimatedTime || '10-60 sec'}
-                </p>
-              </div>
+            <div>
+              <p className="text-xs text-textSecondary uppercase font-bold tracking-wider">Phone Number</p>
+              <p className="text-textPrimary font-semibold text-lg">{orderData?.phone || 'N/A'}</p>
             </div>
           </div>
 
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 relative z-10">
-            <Link to="/track-order" className="bg-backgroundSecondary hover:bg-background border border-borderDark text-textMain font-bold py-4 rounded-2xl flex items-center justify-center gap-2 transition-colors">
-              Track Order
-            </Link>
-            <Link to="/bundles" className="bg-primary hover:bg-primaryHover text-textMain font-bold py-4 rounded-2xl flex items-center justify-center gap-2 transition-colors duration-200 shadow-[0_0_15px_rgba(59,130,246,0.2)]">
-              Buy Another Bundle <ArrowRight size={18} />
-            </Link>
+          <div className="border-t border-slate-200"></div>
+
+          <div className="flex items-center gap-4">
+            <div className="w-10 h-10 bg-primary/10 rounded-xl flex items-center justify-center flex-shrink-0">
+              <Package className="text-primary" size={20} />
+            </div>
+            <div>
+              <p className="text-xs text-textSecondary uppercase font-bold tracking-wider">Bundle</p>
+              <p className="text-textPrimary font-semibold text-lg">{orderData?.bundleName || 'N/A'}</p>
+            </div>
           </div>
-        </motion.div>
-      </div>
-    </>
+        </div>
+
+        {/* Action buttons */}
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 relative z-10">
+          <Link to="/track-order" className="bg-slate-100 hover:bg-slate-200 text-textPrimary font-bold py-3.5 rounded-xl flex items-center justify-center gap-2 transition-colors text-sm">
+            Track Order
+          </Link>
+          <Link to="/bundles" className="bg-primary hover:bg-[#1D4ED8] text-white font-bold py-3.5 rounded-xl flex items-center justify-center gap-2 transition-colors text-sm shadow-md">
+            Buy Another <ArrowRight size={16} />
+          </Link>
+        </div>
+      </motion.div>
+    </div>
   );
 };
 
 export default PaymentSuccess;
+
